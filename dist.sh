@@ -1,21 +1,23 @@
 #!/bin/bash
+#2019/04/24 fix a bug in finding the total lines of file
 #this script check the atom interdistances , and will tell you the atoms who meets too closely.
-#Usage: dist.pl inputfile
+#Usage: dist.sh inputfile
 #2019/01/29 pony chen
 #email:cjchen16s@imr.ac.cn
 
-end=`grep -n " " $1 | tail -1 | awk -F ":" '{print $1}'` #if your POSCAR has some blank columns or velocity columns,
-                                                         #set the varlue end by yourself
-#end    
+end=`awk  'NR == 7 {print $1+$2+$3+$4+$5+8}' $1` 
+#i beg you has no more than 5 elements, if you have, stantard DFT is not
+#suitable for you, you'd better go to learn EMTO..........
 r0=0.25
 #r0 is the threshold for the meening of " toooo close"
-grep -in "Sel" $1 && constr=0 || constr=1;
-grep -in "direct" $1 && dire=0 || dire=1;
+grep -in "Sel" $1 > /dev/null 2>&1 && constr=0 || constr=1;
+grep -in "direct" $1 > /dev/null 2>&1  && dire=0 || dire=1;
 
 if [ $constr != 0 ]; then
 		begin=9
 else
 		begin=10
+		end=`expr $end + 1`
 fi
 
 if [ $dire -eq 0 ];then

@@ -1,15 +1,15 @@
 #!/bin/bash
+#2019/04/24 fix a bug in finding the total lines of file
 #this script sort the atoms order between the initial and final states in NEB calculation
-#usage: sortNEB.sh initialstate finalstate
+#usage: sortNEB.sh initialstate finalstate 
+#Caution: only support Cartensian
 #2019/01/26 by pony chen
 #email: cjchen16s@imr.ac.cn
 
-end=`grep -n " " $1 | tail -1 | awk -F ":" '{print $1}' ` # some VASP format file generated under windows may not ended 
-                                                          # with "\n", then command wc -l will error counted, so this format is more safe
-#end=`cat $1 | wc -l` 
-#end=                                                     #if your input file have information about velocities or just more blank clomns, please set the value end by yourself
+end=`awk 'NR == 7 {print $1+$2+$3+$4+$5+8}' $1 ` 
+#i beg you have no more than 5 elements
 
-grep -in "Sel" $1 && constr=0 || constr=1;
+grep -in "Sel" $1 > /dev/null 2>&1 && constr=0 || constr=1;
 r0=0.01
 
 if [ $constr -eq 1 ]; then
@@ -34,6 +34,7 @@ if [ $constr -eq 1 ]; then
 		}' $1 $2 >> $2.new ;
 	else
 		begin2=10
+	    end=`expr $end + 1`
 
         hed=$(($begin2-1))
 
@@ -55,6 +56,6 @@ if [ $constr -eq 1 ]; then
 	fi
 
 #test usage	
-echo $constr
+#echo $constr
 #echo $end
 

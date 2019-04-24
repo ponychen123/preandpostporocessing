@@ -1,15 +1,15 @@
 #!/bin/bash
+#2019/04/24 fix a bug in finding the total lines of file
 #this script transfer the direct format POSCAR into Cartesian format
 #Usage: d2c.sh inputfile ,the inputfile will be transferd into inputfile.new
 #2019/01/28 pony chen
 #email:cjchen16s@imr.ac.cn
 
-end=`grep -n " " $1 | tail -1 | awk -F ":" '{print $1}'` #if your POSCAR has some blank columns or velocity columns,
-                                                         #set the varlue end by yourself
-#end     
+end=`awk 'NR == 7 {print $1+$2+$3+$4+$5+8}' $1` 
+#i beg you has no more than 5 elements     
 
-grep -in "Sel" $1 && constr=0 || constr=1;
-grep -in "direct" $1 && dire=0 || dire=1;
+grep -in "Sel" $1 > /dev/null 2>&1 && constr=0 || constr=1;
+grep -in "direct" $1 > /dev/null 2>&1 && dire=0 || dire=1;
 
 if [ $dire -eq 0 ];then
 	if [ $constr -eq 1 ]; then
@@ -30,6 +30,7 @@ if [ $dire -eq 0 ];then
 		sed -i '8c Cartesian' $1.new
 	else
 		begin=10
+	    end=`expr $end + 1 `
 		hed=$(($begin-1))
 		head -n $hed $1 | cat - > $1.new
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+#2019/05/24 fix a bug
 #2019/04/24 fix a bug in finding the total lines of file
 #this script transfer the direct format POSCAR into Cartesian format
 #Usage: d2c.sh inputfile ,the inputfile will be transferd into inputfile.new
@@ -18,7 +19,8 @@ if [ $dire -eq 0 ];then
 		head -n $hed $1 | cat - > $1.new
 
 		awk -v begin=$begin -v end=$end '
-		   NR>=3 && NR<=5 {r[NR]=$1;s[NR]=$2;t[NR]=$3}
+		   NR==2 {scal=$1}
+		   NR>=3 && NR<=5 {r[NR]=$1*scal;s[NR]=$2*scal;t[NR]=$3*scal}
 		   NR>=begin && NR<=end {x0[NR]=$1;y0[NR]=$2;z0[NR]=$3}
 	       END{for(i=begin;i<=end;i=i+1){
 		        x1[i]=x0[i]*r[3] + y0[i]*r[4] + z0[i]*r[5];
@@ -35,7 +37,8 @@ if [ $dire -eq 0 ];then
 		head -n $hed $1 | cat - > $1.new
 
 		awk -v begin=$begin -v end=$end '
-		   NR>=3 && NR<=5 {r[NR]=$1;s[NR]=$2;t[NR]=$3}
+		   NR==2 {scal=$1}
+		   NR>=3 && NR<=5 {r[NR]=$1*scal;s[NR]=$2*scal;t[NR]=$3*scal}
 		   NR>=begin && NR<=end {x0[NR]=$1;y0[NR]=$2;z0[NR]=$3;u0[NR]=$4;v0[NR]=$5;w0[NR]=$6}
 	       END{for(i=begin;i<=end;i=i+1){
 		        x1[i]=x0[i]*r[3] + y0[i]*r[4] + z0[i]*r[5];

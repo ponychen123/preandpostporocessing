@@ -1,4 +1,5 @@
 #!perl
+#xsd2jems.pl v1.2, add support for fractional sited atoms and ingnore the symmetry to avoid bugs in jems. 20190707
 #xsd2jems.pl v1.1, fixed the wrong format of occupancy and Deby factor, 11/28/2018
 #xsd2jems.pl v1.0, Author: Chunjin Chen at IMR, cjchen16s@imr.ac.cn
 #11/25/2018
@@ -12,23 +13,24 @@ use strict;
 use Getopt::Long;
 use MaterialsScript qw(:all);
 
-my $filename = "1-4";                                                       #change your filename that should be in the same ducument
+my $filename = "Ni3Ti";                                                       #change your filename that should be in the same ducument
 my $doc = $Documents{"$filename.xsd"};
 my $jems = Documents->New("$filename.txt");
 my $lattice = $doc->SymmetryDefinition;
 my $lat = "lattice";
 
-my $absorption = "0.03";                                                    #adjust if necesary
+my $absorption = 0.03 ;                                                    #adjust if necesary
+my $Debye = 0.00 ;
 my @element;
 my @num_atom;
 my $ele;
 my $num;
 
-my $sol = $lattice->BravaisLattice;
-   $sol =~ tr/A-Z/a-z/;
+my $sol = "triclinic";
 
 $jems->Append(sprintf "$filename \n");
 $jems->Append(sprintf "%s|%s \n","system",$sol);
+$jems->Append(sprintf "HMSymbol|1|1|0|0| P 1\n");
 $jems->Append(sprintf "rps|0| x , y , z \n");
 $jems->Append(sprintf "%s|%s|%.4f \n",$lat,"0",$lattice->LengthA/10);       # it should be noted that in jems format file the default distance value 
 $jems->Append(sprintf "%s|%s|%.4f \n",$lat,"1",$lattice->LengthB/10);       # is nm,  unlike other format input file.
@@ -62,14 +64,25 @@ $num_atom[$count_el] = $count_atom;
 
 #this format is not the standard format described in JEMS manual, but it looks more elegant and worked well in JEMS.
 #Attention: JEMS crystal file only surport Fractional axis.
-
-for (my $i=0; $i<$doc->UnitCell->Atoms->Count; ++$i){
-   my $atom = $doc->UnitCell->Atoms($i);
-   my $occupancy = $atom->Occupancy;
-   my $Debye = $atom->TemperatureFactor;
-   $jems->Append(sprintf "%s|%u|%s,%s,%.4f,%.4f,%.4f,%.5f,%.5f,%.5f \n", "atom",$i,$atom->ElementSymbol,"a",$atom->FractionalXYZ->X,
-   $atom->FractionalXYZ->Y,$atom->FractionalXYZ->Z,$Debye,$occupancy,$absorption);
-   }
+my $i = 0;
+foreach my $atom (@$atoms){
+   my $composition = $atom->Composition;
+   my @com = split(/;/, $composition);
+   if (@com > 1){
+   	foreach my $com2 (@com){
+   	    my @com3 = split(/,/, $com2);
+   	    my $elementsymbol = $com3[0];
+            my $occupancy = $com3[1];
+   	    $jems->Append(sprintf "%s|%u|%s,%s,%.4f,%.4f,%.4f,%.5f,%.5f,%.5f \n", "atom",$i,$elementsymbol,"a",$atom->FractionalXYZ->X,
+   	    $atom->FractionalXYZ->Y,$atom->FractionalXYZ->Z,$Debye,$occupancy,$absorption);
+   	    $i ++;
+       }}
+   else{
+       my $elementsymbol = @com[0];
+       my $occupancy = 1.00000;
+       $jems->Append(sprintf "%s|%u|%s,%s,%.4f,%.4f,%.4f,%.5f,%.5f,%.5f \n", "atom",$i,$elementsymbol,"a",$atom->FractionalXYZ->X,
+       $atom->FractionalXYZ->Y,$atom->FractionalXYZ->Z,$Debye,$occupancy,$absorption);
+       $i ++;}}       
       
 
 

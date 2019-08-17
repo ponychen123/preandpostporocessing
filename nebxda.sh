@@ -30,7 +30,7 @@ do
 	if [ $i -eq 0 ] || [ $i -eq $(($1+1)) ];then
         cat 0$i/POSCAR | sed -n "$begin,$end p" | awk '{print $1 "\t" $2 "\t" $3}' | cat - >> XDATCAR
 	else
-		cat 0$i/CONTCAR | sed -n "$begin,$end p" | awk '{print $1 "\t" $2 "\t" $3}' | cat - >> XDACAR
+		cat 0$i/CONTCAR | sed -n "$begin,$end p" | awk '{print $1 "\t" $2 "\t" $3}' | cat - >> XDATCAR
 	fi
 done
 
